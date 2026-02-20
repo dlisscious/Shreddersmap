@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Metal Shredders — US Location Map</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -31,11 +31,12 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 #header {
   background: var(--steel);
-  padding: 0 24px;
+  padding: 0 16px;
   height: 54px;
   display: flex;
   align-items: center;
@@ -46,15 +47,15 @@ body {
 
 #logo {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 26px;
-  letter-spacing: 3px;
+  font-size: 22px;
+  letter-spacing: 2px;
   color: #fff;
 }
 #logo span { color: var(--rust); }
 
 #stats {
   display: flex;
-  gap: 28px;
+  gap: 16px;
   align-items: center;
 }
 .stat {
@@ -63,32 +64,33 @@ body {
 }
 .stat-num {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--yellow);
 }
 .stat-label {
-  font-size: 9px;
+  font-size: 8px;
   color: var(--chrome);
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
 }
 
 #controls {
   background: var(--panel);
-  padding: 8px 16px;
+  padding: 8px 12px;
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .ctrl-input {
   background: var(--iron);
   border: 1px solid var(--border);
   border-radius: 3px;
-  padding: 6px 12px;
+  padding: 6px 10px;
   color: var(--light);
   font-family: 'IBM Plex Mono', monospace;
   font-size: 12px;
@@ -98,21 +100,21 @@ body {
 .ctrl-input:focus { border-color: var(--rust); }
 .ctrl-input::placeholder { color: #445566; }
 
-#search-box { width: 240px; }
+#search-box { flex: 1; min-width: 150px; }
 
-#state-sel { cursor: pointer; min-width: 160px; }
+#state-sel { cursor: pointer; min-width: 120px; }
 #state-sel option { background: var(--iron); }
 
 #count-badge {
-  margin-left: auto;
+  width: 100%;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--chrome);
   background: var(--iron);
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 3px;
   border: 1px solid var(--border);
-  white-space: nowrap;
+  text-align: center;
 }
 #count-badge strong { color: var(--yellow); }
 
@@ -120,6 +122,7 @@ body {
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
 }
 
 #sidebar {
@@ -130,19 +133,45 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: transform 0.3s ease;
+  z-index: 1000;
 }
-#sidebar-label {
+
+#sidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+#sidebar-header {
   padding: 8px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  background: var(--iron);
+}
+
+#sidebar-label {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 13px;
   letter-spacing: 2px;
   color: var(--chrome);
-  border-bottom: 1px solid var(--border);
-  background: var(--iron);
 }
+
+#sidebar-toggle {
+  background: none;
+  border: none;
+  color: var(--chrome);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  display: none;
+}
+#sidebar-toggle:hover { color: var(--rust); }
+
 #list {
   overflow-y: auto;
   flex: 1;
+  -webkit-overflow-scrolling: touch;
 }
 #list::-webkit-scrollbar { width: 4px; }
 #list::-webkit-scrollbar-track { background: var(--panel); }
@@ -175,7 +204,31 @@ body {
   margin-top: 2px;
 }
 
-#map { flex: 1; }
+#map { 
+  flex: 1;
+  position: relative;
+}
+
+#mobile-toggle {
+  display: none;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1001;
+  background: var(--steel);
+  border: 2px solid var(--rust);
+  border-radius: 6px;
+  color: #fff;
+  padding: 8px 12px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+#mobile-toggle:active {
+  background: var(--rust);
+}
 
 .leaflet-popup-content-wrapper {
   background: #1e2d3d !important;
@@ -224,6 +277,106 @@ body {
 .legend-dot {
   width: 12px; height: 12px; border-radius: 50%; border: 2.5px solid #fff; flex-shrink: 0;
 }
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  #header {
+    padding: 0 12px;
+    height: 48px;
+  }
+  
+  #logo {
+    font-size: 18px;
+  }
+  
+  #stats {
+    gap: 12px;
+  }
+  
+  .stat-num {
+    font-size: 16px;
+  }
+  
+  .stat-label {
+    font-size: 7px;
+  }
+  
+  #controls {
+    padding: 6px 8px;
+  }
+  
+  #search-box {
+    font-size: 11px;
+  }
+  
+  #state-sel {
+    font-size: 11px;
+    min-width: 100px;
+  }
+  
+  #sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 85%;
+    max-width: 300px;
+    box-shadow: 4px 0 12px rgba(0,0,0,0.5);
+  }
+  
+  #sidebar.collapsed {
+    transform: translateX(-100%);
+  }
+  
+  #mobile-toggle {
+    display: block;
+  }
+  
+  #sidebar-toggle {
+    display: block;
+  }
+  
+  #legend {
+    bottom: 10px;
+    right: 10px;
+    padding: 8px 10px;
+    font-size: 9px;
+  }
+  
+  #legend-title {
+    font-size: 11px;
+    margin-bottom: 5px;
+  }
+  
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .legend-item {
+    margin-bottom: 4px;
+    gap: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  #logo span {
+    display: none;
+  }
+  
+  #stats .stat:nth-child(3) {
+    display: none;
+  }
+  
+  #legend {
+    font-size: 8px;
+    padding: 6px 8px;
+  }
+  
+  .legend-item span {
+    font-size: 8px;
+  }
+}
 </style>
 </head>
 <body>
@@ -255,26 +408,31 @@ body {
 </div>
 
 <div id="body">
-  <div id="sidebar">
-    <div id="sidebar-label">⬛ Locations</div>
+  <div id="sidebar" class="collapsed">
+    <div id="sidebar-header">
+      <div id="sidebar-label">⬛ LOCATIONS</div>
+      <button id="sidebar-toggle" onclick="toggleSidebar()">✕</button>
+    </div>
     <div id="list"></div>
   </div>
-  <div id="map"></div>
+  <div id="map">
+    <button id="mobile-toggle" onclick="toggleSidebar()">☰ LIST</button>
+  </div>
 </div>
 
 <div id="legend">
-  <div id="legend-title">MAP LEGEND</div>
+  <div id="legend-title">LEGEND</div>
   <div class="legend-item">
     <div class="legend-dot" style="background:#C44B1B;"></div>
-    <span>Scrap Metal Shredder</span>
+    <span>Shredder</span>
   </div>
   <div class="legend-item">
     <div class="legend-dot" style="background:#2a9d5a;"></div>
-    <span>Independent Market (75mi)</span>
+    <span>Independent</span>
   </div>
   <div class="legend-item">
     <div class="legend-dot" style="background:#1a6bb5;"></div>
-    <span>Electric Arc Furnace</span>
+    <span>EAF Mill</span>
   </div>
 </div>
 
@@ -282,6 +440,12 @@ body {
 const RAW = [{"state": "Alabama", "town": "Decatur", "shredder": "SA Recycling", "lat": 34.6059, "lng": -86.9833}, {"state": "Florida", "town": "Pensacola", "shredder": "Scrap Inc.", "lat": 30.4213, "lng": -87.2169}, {"state": "Michigan", "town": "Gaylord", "shredder": "A&L Iron & Metal", "lat": 45.0275, "lng": -84.6749}, {"state": "Florida", "town": "Palmetto", "shredder": "Aceros America", "lat": 27.5228, "lng": -82.5782}, {"state": "South Carolina", "town": "Greenville", "shredder": "Adams Scrap Recycling", "lat": 34.8526, "lng": -82.394}, {"state": "Kansas", "town": "Kansas City", "shredder": "Advantage Metals Recycling", "lat": 39.1141, "lng": -94.6275}, {"state": "Missouri", "town": "Kansas City", "shredder": "Advantage Metals Recycling", "lat": 39.0997, "lng": -94.5786}, {"state": "Missouri", "town": "St. Louis", "shredder": "Advantage Metals Recycling", "lat": 38.627, "lng": -90.1994}, {"state": "California", "town": "San Diego", "shredder": "AIM Recycling", "lat": 32.7157, "lng": -117.1611}, {"state": "California", "town": "Colton", "shredder": "AIM Recycling Colton", "lat": 34.0739, "lng": -117.3131}, {"state": "Pennsylvania", "town": "Erie", "shredder": "AIM Recycling Erie", "lat": 42.1292, "lng": -80.0851}, {"state": "Arizona", "town": "Phoenix", "shredder": "AIM Recycling Phoenix", "lat": 33.4484, "lng": -112.074}, {"state": "New Mexico", "town": "Albuquerque", "shredder": "Albuquerque Metal Recycling", "lat": 35.0844, "lng": -106.6504}, {"state": "Kansas", "town": "Wichita", "shredder": "All Metal Recycling", "lat": 37.6872, "lng": -97.3301}, {"state": "Nebraska", "town": "", "shredder": "All Metals Market Inc.", "lat": 40.87537, "lng": -98.103082}, {"state": "Colorado", "town": "Englewood", "shredder": "All Recycling Inc.", "lat": 39.6483, "lng": -104.9877}, {"state": "Texas", "town": "Brownsville", "shredder": "All Star Metals (SMS)", "lat": 25.9017, "lng": -97.4975}, {"state": "Minnesota", "town": "Duluth", "shredder": "Alliance Recycling Group", "lat": 46.7867, "lng": -92.1005}, {"state": "Florida", "town": "Fort Myers", "shredder": "Allied Recycling", "lat": 26.6406, "lng": -81.8723}, {"state": "New Jersey", "town": "Trenton", "shredder": "Alpha Shredding Group Inc.", "lat": 40.2171, "lng": -74.7429}, {"state": "Arkansas", "town": "Hot Springs", "shredder": "Alter Trading", "lat": 34.5037, "lng": -93.0552}, {"state": "Arkansas", "town": "N. Little Rock", "shredder": "Alter Trading", "lat": 34.7695, "lng": -92.2671}, {"state": "Arkansas", "town": "Rogers", "shredder": "Alter Trading", "lat": 36.332, "lng": -94.1185}, {"state": "Illinois", "town": "Peoria", "shredder": "Alter Trading", "lat": 40.6936, "lng": -89.589}, {"state": "Illinois", "town": "South Beloit", "shredder": "Alter Trading", "lat": 42.4881, "lng": -89.0362}, {"state": "Iowa", "town": "Mason City", "shredder": "Alter Trading", "lat": 43.1536, "lng": -93.201}, {"state": "Michigan", "town": "Kingsford", "shredder": "Alter Trading", "lat": 45.7953, "lng": -88.0648}, {"state": "Nebraska", "town": "Columbus", "shredder": "Alter Trading", "lat": 41.43, "lng": -97.3681}, {"state": "Wisconsin", "town": "Eau Claire", "shredder": "Alter Trading", "lat": 44.8113, "lng": -91.4985}, {"state": "Wisconsin", "town": "Green Bay", "shredder": "Alter Trading", "lat": 44.5133, "lng": -88.0133}, {"state": "Wisconsin", "town": "Madison", "shredder": "Alter Trading", "lat": 43.0731, "lng": -89.4012}, {"state": "Wisconsin", "town": "Milwaukee", "shredder": "Alter Trading", "lat": 43.0389, "lng": -87.9065}, {"state": "Iowa", "town": "Council Bluffs", "shredder": "Alter Trading", "lat": 41.2619, "lng": -95.8608}, {"state": "Iowa", "town": "Davenport", "shredder": "Alter Trading", "lat": 41.5236, "lng": -90.5776}, {"state": "Iowa", "town": "Des Moines", "shredder": "Alter Trading", "lat": 41.5868, "lng": -93.625}, {"state": "Iowa", "town": "Waterloo", "shredder": "Alter Trading", "lat": 42.4928, "lng": -92.3426}, {"state": "Minnesota", "town": "Anoka", "shredder": "Alter Trading", "lat": 45.1977, "lng": -93.3869}, {"state": "Texas", "town": "Amarillo", "shredder": "Amarillo Recycling", "lat": 35.222, "lng": -101.8313}, {"state": "Colorado", "town": "Colorado Spings", "shredder": "American Iron & Metal Co Inc", "lat": 38.8339, "lng": -104.8214}, {"state": "Colorado", "town": "Pueblo", "shredder": "American Iron & Metal Co. Inc.", "lat": 38.2544, "lng": -104.6091}, {"state": "Texas", "town": "Fort Worth", "shredder": "American Shredder Enterprises", "lat": 32.7555, "lng": -97.3308}, {"state": "Georgia", "town": "Lake City", "shredder": "Amerigo Metal Recycling", "lat": 33.5918, "lng": -84.3427}, {"state": "West Virginia", "town": "Benwood", "shredder": "AMG Resources", "lat": 39.9912, "lng": -80.7309}, {"state": "Nebraska", "town": "Kearney", "shredder": "Andersen Wrecking", "lat": 40.6994, "lng": -99.0817}, {"state": "Colorado", "town": "Greeley", "shredder": "Andersen's Sales & Salvage", "lat": 40.4233, "lng": -104.7091}, {"state": "Louisiana", "town": "Monroe", "shredder": "Auto Shred of Louisiana", "lat": 32.5093, "lng": -92.1193}, {"state": "Wisconsin", "town": "Newton", "shredder": "B&B Metals Processing", "lat": 43.8208, "lng": -87.7887}, {"state": "Maryland", "town": "Baltimore", "shredder": "Baltimore Scrap Corp. (Sims owned)", "lat": 39.2904, "lng": -76.6122}, {"state": "Minnesota", "town": "Duluth", "shredder": "Bayside Recycling Corp.", "lat": 46.7867, "lng": -92.1005}, {"state": "Maine", "town": "Berwick", "shredder": "Berwick Iron & Metal", "lat": 43.2695, "lng": -70.8628}, {"state": "Indiana", "town": "Waterloo", "shredder": "BlueScope Recycling", "lat": 41.4317, "lng": -85.0233}, {"state": "Ohio", "town": "Delta", "shredder": "BlueScope Recycling", "lat": 41.5759, "lng": -84.0058}, {"state": "Ohio", "town": "Mansfield", "shredder": "BlueScope Recycling", "lat": 40.7584, "lng": -82.5154}, {"state": "South Carolina", "town": "Greenwood", "shredder": "C&C Metal Recycling", "lat": 34.1954, "lng": -82.1618}, {"state": "Connecticut", "town": "New Haven", "shredder": "Chase Waste Materials (Chuck & Eddie's)", "lat": 41.3083, "lng": -72.9279}, {"state": "Illinois", "town": "Sterling", "shredder": "Cimco Resources", "lat": 41.7892, "lng": -89.6962}, {"state": "Alabama", "town": "Calera", "shredder": "Circle K Scrap", "lat": 33.1004, "lng": -86.7519}, {"state": "Iowa", "town": "Monona", "shredder": "Clayton County Recycling", "lat": 43.0511, "lng": -91.3896}, {"state": "Illinois", "town": "Ziion", "shredder": "Cleveland Corp.", "lat": 42.4467, "lng": -87.8412}, {"state": "Florida", "town": "Baldwin", "shredder": "CMC Recycling", "lat": 30.3044, "lng": -81.9784}, {"state": "Florida", "town": "Jacksonville", "shredder": "CMC Recycling", "lat": 30.3322, "lng": -81.6557}, {"state": "Oklahoma", "town": "Tulsa", "shredder": "CMC Recycling", "lat": 36.1539, "lng": -95.9928}, {"state": "South Carolina", "town": "Lexington", "shredder": "CMC Recycling", "lat": 33.9843, "lng": -81.2368}, {"state": "South Carolina", "town": "Spartanburg", "shredder": "CMC Recycling", "lat": 34.9496, "lng": -81.932}, {"state": "Texas", "town": "Dallas", "shredder": "CMC Recycling", "lat": 32.7767, "lng": -96.797}, {"state": "Texas", "town": "Seguin", "shredder": "CMC Recycling", "lat": 29.5688, "lng": -97.9647}, {"state": "Pennsylvania", "town": "Coatesville", "shredder": "Coatesville Scrap Iron & Metal (Sims-owned)", "lat": 39.9834, "lng": -75.8238}, {"state": "Ohio", "town": "Miamisburg", "shredder": "Cohen Recycling", "lat": 39.6431, "lng": -84.2888}, {"state": "Ohio", "town": "Columbus", "shredder": "Columbus Auto Shredding", "lat": 39.9612, "lng": -82.9988}, {"state": "Nebraska", "town": "Columbus", "shredder": "Columbus Metal Industries (Alter Trading)", "lat": 41.43, "lng": -97.3681}, {"state": "Nebraska", "town": "Kearney", "shredder": "Columbus Metal Industries (Alter)", "lat": 40.6994, "lng": -99.0817}, {"state": "Texas", "town": "New Braunfels", "shredder": "Comal Iron & Metals", "lat": 29.703, "lng": -98.1245}, {"state": "Connecticut", "town": "Uncasville", "shredder": "Connecticut Scrap", "lat": 41.4487, "lng": -72.0967}, {"state": "Maryland", "town": "Hagerstown", "shredder": "Conservit Inc.", "lat": 39.6418, "lng": -77.72}, {"state": "Pennsylvania", "town": "Harrisburg", "shredder": "Consolidated Scrap Resources", "lat": 40.2732, "lng": -76.8867}, {"state": "Tennessee", "town": "Monroe", "shredder": "Cooper Recycling", "lat": 36.5329, "lng": -86.9733}, {"state": "Minnesota", "town": "Brainerd", "shredder": "Crow Wing Recycling", "lat": 46.358, "lng": -94.2008}, {"state": "Minnesota", "town": "", "shredder": "Crow Wing Recycling", "lat": 45.444454, "lng": -93.765192}, {"state": "South Carolina", "town": "Darlington", "shredder": "Darlington Shredding", "lat": 34.2996, "lng": -79.8761}, {"state": "Virginia", "town": "Lorton", "shredder": "Davis Industries", "lat": 38.7048, "lng": -77.2211}, {"state": "Oklahoma", "town": "Oklahoma City", "shredder": "Derichebourg Recycling", "lat": 35.4676, "lng": -97.5164}, {"state": "Texas", "town": "Houston", "shredder": "Derichebourg Recycling", "lat": 29.7604, "lng": -95.3698}, {"state": "Pennsylvania", "town": "Hanover", "shredder": "DMS Shredding", "lat": 39.8012, "lng": -76.9838}, {"state": "South Carolina", "town": "Holly Hill", "shredder": "Don\u2019s Car Crushing", "lat": 33.3249, "lng": -80.4112}, {"state": "Oklahoma", "town": "Durant", "shredder": "Durant Metal Shredding", "lat": 33.994, "lng": -96.3728}, {"state": "North Carolina", "town": "Kelford", "shredder": "Empire Recycling", "lat": 36.1946, "lng": -77.2241}, {"state": "New Jersey", "town": "Camden", "shredder": "EMR Camden", "lat": 39.9259, "lng": -75.1196}, {"state": "Maryland", "town": "Capitol Heights", "shredder": "EMR Smith Industries", "lat": 38.8851, "lng": -76.9135}, {"state": "Maryland", "town": "Cumberland", "shredder": "EMR Smith Industries", "lat": 39.6529, "lng": -78.7625}, {"state": "Louisiana", "town": "Baton Rouge", "shredder": "EMR Southern Recycling", "lat": 30.4515, "lng": -91.1871}, {"state": "Louisiana", "town": "New Orleans", "shredder": "EMR Southern Recycling", "lat": 29.9511, "lng": -90.0715}, {"state": "Pennsylvania", "town": "Philadelphia", "shredder": "EMR SPC", "lat": 39.9526, "lng": -75.1652}, {"state": "Colorado", "town": "Denver", "shredder": "Evraz Recycling", "lat": 39.7392, "lng": -104.9903}, {"state": "Massachusetts", "town": "Freetown", "shredder": "Excel Recycling", "lat": 41.7751, "lng": -71.0148}, {"state": "Florida", "town": "Miami", "shredder": "Ferrous Processing & Trading", "lat": 25.7617, "lng": -80.1918}, {"state": "Michigan", "town": "Pontiac", "shredder": "Ferrous Processing & Trading", "lat": 42.6389, "lng": -83.291}, {"state": "Ohio", "town": "Cleveland", "shredder": "Ferrous Processing & Trading", "lat": 41.4993, "lng": -81.6944}, {"state": "Michigan", "town": "Detroit", "shredder": "Ferrous Processing & Trading (Strong Steel)", "lat": 42.3314, "lng": -83.0458}, {"state": "North Carolina", "town": "Halifax", "shredder": "Foss Recycling", "lat": 36.3293, "lng": -77.5883}, {"state": "North Carolina", "town": "Reidsville", "shredder": "Foss Recycling", "lat": 36.3546, "lng": -79.6742}, {"state": "Ohio", "town": "Dayton", "shredder": "Franklin Iron & Metal", "lat": 39.7589, "lng": -84.1916}, {"state": "Michigan", "town": "Flint", "shredder": "Fritz Enterprises", "lat": 43.0125, "lng": -83.6875}, {"state": "Michigan", "town": "Taylor", "shredder": "Fritz Enterprises", "lat": 42.2306, "lng": -83.2697}, {"state": "Texas", "town": "Fort Worth", "shredder": "Gachman Metals & Recycling", "lat": 32.7555, "lng": -97.3308}, {"state": "Georgia", "town": "Pembroke", "shredder": "Gann Car Crushing Inc.", "lat": 32.136, "lng": -81.6243}, {"state": "Kentucky", "town": "Paducah", "shredder": "Garrett Recycling", "lat": 37.0834, "lng": -88.5999}, {"state": "Texas", "town": "Laredo", "shredder": "Gary Wilkinson Iron & Metal", "lat": 27.5064, "lng": -99.5075}, {"state": "Mississippi", "town": "Flowood", "shredder": "General Recycling of Miss. (Nucor)", "lat": 32.3357, "lng": -90.1093}, {"state": "Tennessee", "town": "Jackson", "shredder": "Gerdau", "lat": 35.6145, "lng": -88.8139}, {"state": "Virginia", "town": "Petersburg", "shredder": "Gerdau", "lat": 37.2279, "lng": -77.4019}, {"state": "Texas", "town": "Midlothian", "shredder": "Gerdau Ameristeel", "lat": 32.4824, "lng": -97.0053}, {"state": "New York", "town": "Medford", "shredder": "Gershow Recycling", "lat": 40.8226, "lng": -73.0018}, {"state": "Maine", "town": "Topsham", "shredder": "Grimmel Industries", "lat": 43.9662, "lng": -69.9748}, {"state": "Tennessee", "town": "Cornersville", "shredder": "Harmon Scrap", "lat": 35.3637, "lng": -86.8361}, {"state": "Texas", "town": "Kennedale", "shredder": "Hawk Steel Industries", "lat": 32.6473, "lng": -97.2236}, {"state": "Indiana", "town": "Evansville", "shredder": "Henry Fligeltaub Co", "lat": 37.9716, "lng": -87.5711}, {"state": "Texas", "town": "Houston", "shredder": "Holmes Road (Tri Coastal)", "lat": 29.7604, "lng": -95.3698}, {"state": "Ohio", "town": "Akron", "shredder": "Holub Recycling", "lat": 41.0814, "lng": -81.519}, {"state": "Tennessee", "town": "Jackson", "shredder": "Hutcherson Metals", "lat": 35.6145, "lng": -88.8139}, {"state": "Tennessee", "town": "Halls", "shredder": "Hutcherson Metals Inc.", "lat": 35.8784, "lng": -89.3959}, {"state": "Arizona", "town": "Tucson", "shredder": "HVF West", "lat": 32.2226, "lng": -110.9747}, {"state": "Louisiana", "town": "LaPlace", "shredder": "Infrabuild", "lat": 30.0688, "lng": -90.4801}, {"state": "Indiana", "town": "Morristown", "shredder": "Integrity Metals", "lat": 39.6739, "lng": -85.6969}, {"state": "Pennsylvania", "town": "Hazelton", "shredder": "Interstate Metal Recycling", "lat": 40.9584, "lng": -75.9746}, {"state": "Indiana", "town": "Evansville", "shredder": "J. Trockman & Sons", "lat": 37.9716, "lng": -87.5711}, {"state": "Pennsylvania", "town": "York", "shredder": "J&K Salvage", "lat": 39.9626, "lng": -76.7277}, {"state": "Texas", "town": "Lubbock", "shredder": "Jarvis Metals Recycling.", "lat": 33.5779, "lng": -101.8552}, {"state": "Texas", "town": "Brownsville", "shredder": "Jim Wilkinson Iron & Metal Inc", "lat": 25.9017, "lng": -97.4975}, {"state": "Michigan", "town": "Kalamazoo", "shredder": "Kalamazoo Metal Recyclers", "lat": 42.2917, "lng": -85.5872}, {"state": "North Carolina", "town": "Statesville", "shredder": "L. Gordon Iron & Metal Co.", "lat": 35.7826, "lng": -80.8873}, {"state": "Connecticut", "town": "Norwalk", "shredder": "Lajoie's Auto Parts", "lat": 41.1177, "lng": -73.4082}, {"state": "Iowa", "town": "Carter Lake", "shredder": "Lakeside Auto Recyclers", "lat": 41.2919, "lng": -95.9163}, {"state": "Florida", "town": "Apopka", "shredder": "Landers Recycling", "lat": 28.6936, "lng": -81.5323}, {"state": "Alabama", "town": "Tuscaloosa", "shredder": "Liberty Recycling", "lat": 33.2098, "lng": -87.5692}, {"state": "Michigan", "town": "Grand Rapids", "shredder": "Louis Padnos Iron & Metal", "lat": 42.9634, "lng": -85.6681}, {"state": "Michigan", "town": "Holland", "shredder": "Louis Padnos Iron & Metal Co", "lat": 42.7876, "lng": -86.1089}, {"state": "Michigan", "town": "Howell", "shredder": "Louis Padnos Iron & Metal Co", "lat": 42.6075, "lng": -83.9294}, {"state": "Texas", "town": "Waco", "shredder": "M. Lipsitz & Co.", "lat": 31.5493, "lng": -97.1467}, {"state": "Mississippi", "town": "Sardis", "shredder": "Martin Brothers Scrap Metal", "lat": 34.4354, "lng": -89.9173}, {"state": "Pennsylvania", "town": "Fairless Hills", "shredder": "Mazza Iron & Steel", "lat": 40.1793, "lng": -74.8538}, {"state": "Pennsylvania", "town": "Beech Creek", "shredder": "McGhee Scrap", "lat": 41.0734, "lng": -77.5868}, {"state": "North Carolina", "town": "Monroe", "shredder": "Metal Recycling Services (DJJ)", "lat": 34.9854, "lng": -80.5495}, {"state": "Indiana", "town": "Bedford", "shredder": "Metal Source LLC", "lat": 38.8612, "lng": -86.4872}, {"state": "New York", "town": "Buffalo", "shredder": "Metalico", "lat": 42.8864, "lng": -78.8784}, {"state": "Ohio", "town": "Girard", "shredder": "Metalico", "lat": 41.1531, "lng": -80.6984}, {"state": "Pennsylvania", "town": "Pittsburgh", "shredder": "Metalico Pittsburgh", "lat": 40.4406, "lng": -79.9959}, {"state": "Kentucky", "town": "Glasgow", "shredder": "Mid-State Recycling", "lat": 36.9959, "lng": -85.9119}, {"state": "Kansas", "town": "Park City", "shredder": "Midwest Scrap Management", "lat": 37.8122, "lng": -97.3322}, {"state": "Missouri", "town": "Kansas City", "shredder": "Midwest Scrap Management", "lat": 39.0997, "lng": -94.5786}, {"state": "Texas", "town": "San Antonio", "shredder": "Monterrey Iron & Metal", "lat": 29.4241, "lng": -98.4936}, {"state": "Tennessee", "town": "Morristown", "shredder": "Morristown Shredder", "lat": 36.2148, "lng": -83.2952}, {"state": "Minnesota", "town": "New Ulm", "shredder": "New Ulm Steel", "lat": 44.3122, "lng": -94.4599}, {"state": "Minnesota", "town": "Becker", "shredder": "Northern Metals Recycling (EMR)", "lat": 45.3938, "lng": -93.8722}, {"state": "Georgia", "town": "Covington", "shredder": "Oconee Metal Recycling", "lat": 33.5968, "lng": -83.8602}, {"state": "Indiana", "town": "Fort Wayne", "shredder": "OmniSource", "lat": 41.0793, "lng": -85.1394}, {"state": "Indiana", "town": "Indianapolis", "shredder": "OmniSource", "lat": 39.7684, "lng": -86.1581}, {"state": "Indiana", "town": "New Carlisle", "shredder": "OmniSource", "lat": 41.7, "lng": -86.4994}, {"state": "Michigan", "town": "Jackson", "shredder": "OmniSource", "lat": 42.2459, "lng": -84.4013}, {"state": "North Carolina", "town": "Kernersville", "shredder": "OmniSource", "lat": 36.1207, "lng": -80.0731}, {"state": "Ohio", "town": "Toledo", "shredder": "OmniSource", "lat": 41.6639, "lng": -83.5552}, {"state": "Tennessee", "town": "Johnson City", "shredder": "OmniSource", "lat": 36.3134, "lng": -82.3535}, {"state": "Tennessee", "town": "Memphis", "shredder": "OmniSource", "lat": 35.1495, "lng": -90.049}, {"state": "Texas", "town": "Corpus Christi", "shredder": "OmniSource", "lat": 27.8006, "lng": -97.3964}, {"state": "Virginia", "town": "Rocky Mount", "shredder": "OmniSource", "lat": 36.9957, "lng": -79.892}, {"state": "Washington", "town": "Vancouver", "shredder": "Pacific Coast Shredding", "lat": 45.6387, "lng": -122.6615}, {"state": "Oregon", "town": "Eugene", "shredder": "Pacific Recycling", "lat": 44.0521, "lng": -123.0868}, {"state": "Montana", "town": "Billings", "shredder": "Pacific Steel", "lat": 45.7833, "lng": -108.5007}, {"state": "Idaho", "town": "Mayfield", "shredder": "Pacific Steel", "lat": 43.2569, "lng": -115.3033}, {"state": "New Jersey", "town": "Clifton", "shredder": "Parkway Iron & Metal", "lat": 40.8584, "lng": -74.1638}, {"state": "Pennsylvania", "town": "Williamsport", "shredder": "Penn Recycling (Sims-owned)", "lat": 41.2412, "lng": -77.0011}, {"state": "Texas", "town": "Abilene", "shredder": "Pine Street Salvage", "lat": 32.4487, "lng": -99.7331}, {"state": "Virginia", "town": "", "shredder": "PNW", "lat": 37.519337, "lng": -78.17496799999999}, {"state": "Alabama", "town": "Albertville", "shredder": "Progress Rail", "lat": 34.2676, "lng": -86.2089}, {"state": "California", "town": "Oakland", "shredder": "Radius Recycling", "lat": 37.8044, "lng": -122.2712}, {"state": "Hawaii", "town": "Kapolei", "shredder": "Radius Recycling", "lat": 21.3403, "lng": -158.0679}, {"state": "Massachusetts", "town": "Everett", "shredder": "Radius Recycling", "lat": 42.4084, "lng": -71.0537}, {"state": "Oregon", "town": "", "shredder": "Radius Recycling", "lat": 44.322021, "lng": -121.850938}, {"state": "Washington", "town": "Tacoma", "shredder": "Radius Recycling", "lat": 47.2529, "lng": -122.4443}, {"state": "Georgia", "town": "Lithonia", "shredder": "Radius Recycling", "lat": 33.7118, "lng": -84.1083}, {"state": "Maryland", "town": "Halethrope", "shredder": "Recovermat Mid-Atlantic", "lat": 39.2437, "lng": -76.6766}, {"state": "Virginia", "town": "Harrisonburrg", "shredder": "Recycle Management", "lat": 38.4496, "lng": -78.8689}, {"state": "West Virginia", "town": "Princeton", "shredder": "Recycle W.Va", "lat": 37.3654, "lng": -81.1012}, {"state": "North Carolina", "town": "Rocky Mount", "shredder": "Regional Materials Recovery", "lat": 35.9382, "lng": -77.7905}, {"state": "New York", "town": "Rensselaer", "shredder": "Rensselaer Iron & Steel (Grimmel)", "lat": 42.6426, "lng": -73.7385}, {"state": "Florida", "town": "Pompano", "shredder": "ReSource Metal Recycling", "lat": 26.2379, "lng": -80.1248}, {"state": "Kentucky", "town": "Ashland", "shredder": "River Metals Recycling", "lat": 38.4784, "lng": -82.6379}, {"state": "Kentucky", "town": "Louisville", "shredder": "River Metals Recycling", "lat": 38.2527, "lng": -85.7585}, {"state": "Kentucky", "town": "Louisville", "shredder": "River Metals Recycling", "lat": 38.2527, "lng": -85.7585}, {"state": "Kentucky", "town": "Newport", "shredder": "River Metals Recycling", "lat": 39.092, "lng": -84.4963}, {"state": "Oregon", "town": "Portland", "shredder": "Rivergate Scrap Metals", "lat": 45.5051, "lng": -122.675}, {"state": "Indiana", "town": "Rochester", "shredder": "Rochester Iron & Metal", "lat": 41.0644, "lng": -86.2158}, {"state": "Texas", "town": "Houston", "shredder": "Rose Metal Processing", "lat": 29.7604, "lng": -95.3698}, {"state": "Alabama", "town": "Demopolis", "shredder": "Rowley Recycling", "lat": 32.5168, "lng": -87.8353}, {"state": "Pennsylvania", "town": "Temple", "shredder": "Royal Green (AMG)", "lat": 40.4048, "lng": -75.9266}, {"state": "Pennsylvania", "town": "Wind Gap", "shredder": "RPM Metals", "lat": 40.8437, "lng": -75.2918}, {"state": "Pennsylvania", "town": "Philadelphia", "shredder": "S.D. Richman Sons", "lat": 39.9526, "lng": -75.1652}, {"state": "Georgia", "town": "East Point", "shredder": "SA  Recycling", "lat": 33.6795, "lng": -84.4394}, {"state": "Alabama", "town": "Birmingham", "shredder": "SA Recycling", "lat": 33.5186, "lng": -86.8104}, {"state": "Alabama", "town": "Mobile", "shredder": "SA Recycling", "lat": 30.6954, "lng": -88.0399}, {"state": "Alabama", "town": "Phenix City", "shredder": "SA Recycling", "lat": 32.471, "lng": -85.0008}, {"state": "Arizona", "town": "Phoenix", "shredder": "SA Recycling", "lat": 33.4484, "lng": -112.074}, {"state": "Arizona", "town": "Tucson", "shredder": "SA Recycling", "lat": 32.2226, "lng": -110.9747}, {"state": "California", "town": "Anaheim", "shredder": "SA Recycling", "lat": 33.8353, "lng": -117.9145}, {"state": "California", "town": "Bakersfield", "shredder": "SA Recycling", "lat": 35.3733, "lng": -119.0187}, {"state": "California", "town": "Terminal Island (LA)", "shredder": "SA Recycling", "lat": 33.7386, "lng": -118.2534}, {"state": "Florida", "town": "Davie", "shredder": "SA Recycling", "lat": 26.0765, "lng": -80.2521}, {"state": "Georgia", "town": "Atlanta", "shredder": "SA Recycling", "lat": 33.749, "lng": -84.388}, {"state": "Georgia", "town": "Doraville", "shredder": "SA Recycling", "lat": 33.8987, "lng": -84.2827}, {"state": "Georgia", "town": "Lawrenceville", "shredder": "SA Recycling", "lat": 33.9526, "lng": -83.9877}, {"state": "Georgia", "town": "Savannah", "shredder": "SA Recycling", "lat": 32.0835, "lng": -81.0998}, {"state": "Illinois", "town": "Alton", "shredder": "SA Recycling", "lat": 38.8906, "lng": -90.1843}, {"state": "Missouri", "town": "St. Louis", "shredder": "SA Recycling", "lat": 38.627, "lng": -90.1994}, {"state": "Nevada", "town": "Las Vegas", "shredder": "SA Recycling", "lat": 36.1699, "lng": -115.1398}, {"state": "Ohio", "town": "Canton", "shredder": "SA Recycling", "lat": 40.7989, "lng": -81.3784}, {"state": "Ohio", "town": "Columbus", "shredder": "SA Recycling", "lat": 39.9612, "lng": -82.9988}, {"state": "Pennsylvania", "town": "Beaver Falls", "shredder": "SA Recycling", "lat": 40.7523, "lng": -80.3195}, {"state": "Tennessee", "town": "Chattanooga", "shredder": "SA Recycling", "lat": 35.0456, "lng": -85.3097}, {"state": "Tennessee", "town": "Harriman", "shredder": "SA Recycling", "lat": 35.9343, "lng": -84.5499}, {"state": "Tennessee", "town": "Knoxville", "shredder": "SA Recycling", "lat": 35.9606, "lng": -83.9207}, {"state": "Tennessee", "town": "Nashville", "shredder": "SA Recycling", "lat": 36.1627, "lng": -86.7816}, {"state": "Tennessee", "town": "Nashville", "shredder": "SA Recycling", "lat": 36.1627, "lng": -86.7816}, {"state": "Tennessee", "town": "Pulaski", "shredder": "SA Recycling", "lat": 35.2012, "lng": -87.0311}, {"state": "Texas", "town": "Brownsville", "shredder": "SA Recycling", "lat": 25.9017, "lng": -97.4975}, {"state": "Texas", "town": "El Paso", "shredder": "SA Recycling", "lat": 31.7619, "lng": -106.485}, {"state": "Wisconsin", "town": "Fort Worth", "shredder": "Sadoff Iron", "lat": 44.5588, "lng": -88.0198}, {"state": "Illinois", "town": "Blue Island", "shredder": "Scrap Metal Services", "lat": 41.6578, "lng": -87.6839}, {"state": "Georgia", "town": "Metter", "shredder": "Scrap Partners LLC", "lat": 32.3985, "lng": -82.0582}, {"state": "Missouri", "town": "Farmington", "shredder": "Scrap\u2019n", "lat": 37.7817, "lng": -90.4218}, {"state": "Washington", "town": "Seattle", "shredder": "Seattle Iron & Metals", "lat": 47.6062, "lng": -122.3321}, {"state": "Iowa", "town": "Spencer", "shredder": "Shine Bros. Corp.", "lat": 43.1414, "lng": -95.1441}, {"state": "Maryland", "town": "Baltimore", "shredder": "Sims", "lat": 39.2904, "lng": -76.6122}, {"state": "California", "town": "Redwood City", "shredder": "Sims Metal Management", "lat": 37.4852, "lng": -122.2364}, {"state": "Connecticut", "town": "North Haven", "shredder": "Sims Metal Management", "lat": 41.3912, "lng": -72.8593}, {"state": "New Jersey", "town": "Jersey City", "shredder": "Sims Metal Management", "lat": 40.7178, "lng": -74.0431}, {"state": "Pennsylvania", "town": "Morrisville", "shredder": "Sims Metal Management", "lat": 40.2098, "lng": -74.7793}, {"state": "Rhode Island", "town": "Johnston", "shredder": "Sims Metal Management", "lat": 41.8307, "lng": -71.5189}, {"state": "Virginia", "town": "Chesapeake", "shredder": "Sims Metal Management", "lat": 36.7682, "lng": -76.2875}, {"state": "Illinois", "town": "Chicago", "shredder": "Sims Metal Management (Paulina)", "lat": 41.8781, "lng": -87.6298}, {"state": "Iowa", "town": "Sioux City", "shredder": "Sioux City Compressed Steel", "lat": 42.4999, "lng": -96.4003}, {"state": "Ohio", "town": "Canton", "shredder": "Slesnick Steel & Recycling", "lat": 40.7989, "lng": -81.3784}, {"state": "Mississippi", "town": "Corinth", "shredder": "SMC Recycling", "lat": 34.9343, "lng": -88.5223}, {"state": "Virginia", "town": "Richmond", "shredder": "Smith Iron & Metal", "lat": 37.5407, "lng": -77.436}, {"state": "North Carolina", "town": "Charlotte", "shredder": "Southern Metals", "lat": 35.2271, "lng": -80.8431}, {"state": "Missouri", "town": "Springfield", "shredder": "Springfield Iron & Metal", "lat": 37.2153, "lng": -93.2982}, {"state": "Oklahoma", "town": "Oklahoma City", "shredder": "Standard Iron & Metal", "lat": 35.4676, "lng": -97.5164}, {"state": "Indiana", "town": "Gary", "shredder": "Summit Inc. (Alpha Scrap)", "lat": 41.5934, "lng": -87.3467}, {"state": "Georgia", "town": "Cartersville", "shredder": "Taylor's Scrapyard & Metal Recycling", "lat": 34.1651, "lng": -84.7999}, {"state": "Texas", "town": "Houston", "shredder": "Texas Port Recycling (DJJ)", "lat": 29.7604, "lng": -95.3698}, {"state": "Colorado", "town": "Englewood", "shredder": "The David J. Joseph Co", "lat": 39.6483, "lng": -104.9877}, {"state": "Florida", "town": "Fort Myers", "shredder": "The David J. Joseph Co", "lat": 26.6406, "lng": -81.8723}, {"state": "Florida", "town": "Ocala", "shredder": "The David J. Joseph Co", "lat": 29.1872, "lng": -82.1401}, {"state": "Florida", "town": "Opa-locka", "shredder": "The David J. Joseph Co", "lat": 25.9026, "lng": -80.2497}, {"state": "Florida", "town": "Orlando", "shredder": "The David J. Joseph Co", "lat": 28.5383, "lng": -81.3792}, {"state": "Florida", "town": "Rockledge", "shredder": "The David J. Joseph Co", "lat": 28.3203, "lng": -80.7301}, {"state": "Florida", "town": "Tampa", "shredder": "The David J. Joseph Co", "lat": 27.9506, "lng": -82.4572}, {"state": "North Carolina", "town": "Gastonia", "shredder": "The David J. Joseph Co", "lat": 35.2621, "lng": -81.1873}, {"state": "Pennsylvania", "town": "West Mifflin", "shredder": "TMS International", "lat": 40.3612, "lng": -79.8667}, {"state": "Ohio", "town": "Toledo", "shredder": "Toledo Metal Recycling (Protrade)", "lat": 41.6639, "lng": -83.5552}, {"state": "Texas", "town": "Buffalo Bayou", "shredder": "Tri Coastal Trading", "lat": 29.7667, "lng": -95.3833}, {"state": "Arkansas", "town": "Texarkana", "shredder": "Tri-State Iron & Metal", "lat": 33.4418, "lng": -94.0477}, {"state": "Kentucky", "town": "Lancaster", "shredder": "Triple T Metals", "lat": 37.6195, "lng": -84.5769}, {"state": "North Carolina", "town": "Garner", "shredder": "TT&E Iron & Metal", "lat": 35.7071, "lng": -78.6136}, {"state": "New York", "town": "Depew", "shredder": "Twin Village Recycling", "lat": 42.9084, "lng": -78.6956}, {"state": "Pennsylvania", "town": "Schuylkill Haven", "shredder": "U.S.S. Achey Inc.", "lat": 40.6298, "lng": -76.1713}, {"state": "New York", "town": "North Chili", "shredder": "Union Scrap Processing", "lat": 43.0887, "lng": -77.7898}, {"state": "Georgia", "town": "East Dublin", "shredder": "Universal Recycling", "lat": 32.5407, "lng": -82.8932}, {"state": "New York", "town": "Owego", "shredder": "Upstate Shredding", "lat": 42.1031, "lng": -76.2635}, {"state": "Pennsylvania", "town": "New Castle", "shredder": "Upstate Shredding", "lat": 41.0034, "lng": -80.3468}, {"state": "Texas", "town": "", "shredder": "Valley Steel Recycling", "lat": 30.804487, "lng": -97.628461}, {"state": "Louisiana", "town": "Belle Chasse", "shredder": "Vertex Recovery Management", "lat": 29.8516, "lng": -89.9887}, {"state": "Texas", "town": "", "shredder": "Vinton Metal Processing (Kyoei Steel Group)", "lat": 30.804487, "lng": -97.628461}, {"state": "Wisconsin", "town": "Waukesha", "shredder": "Waukesha Iron & Metal", "lat": 43.0117, "lng": -88.2315}, {"state": "Utah", "town": "Plymouth", "shredder": "Western Metals Recycling (DJJ)", "lat": 41.8788, "lng": -112.1477}, {"state": "Utah", "town": "Salt Lake City", "shredder": "Western Metals Recycling (DJJ)", "lat": 40.7608, "lng": -111.891}, {"state": "Massachusetts", "town": "Greenfield", "shredder": "WTE Recycling Inc.", "lat": 42.5876, "lng": -72.5993}, {"state": "Oklahoma", "town": "Tulsa", "shredder": "Yaffe Companies Inc.", "lat": 36.1539, "lng": -95.9928}, {"state": "Oklahoma", "town": "Arkoma", "shredder": "Yaffe Companies Inc.", "lat": 35.3534, "lng": -94.4388}, {"state": "Arkansas", "town": "Fort Smith", "shredder": "Yaffe Cos.", "lat": 35.3859, "lng": -94.3985}];
 const EAF_DATA = [{"owner": "Nucor", "name": "Nucor Steel - Darlington", "city": "Darlington", "state": "SC", "lat": 34.3756, "lng": -79.8952}, {"owner": "Nucor", "name": "Nucor Steel - Norfolk", "city": "Norfolk", "state": "NE", "lat": 41.9853, "lng": -97.417}, {"owner": "Nucor", "name": "Nucor Steel - Jewett", "city": "Jewett", "state": "TX", "lat": 31.3614, "lng": -96.145}, {"owner": "Nucor", "name": "Nucor Steel - Plymouth", "city": "Plymouth", "state": "UT", "lat": 41.8788, "lng": -112.1477}, {"owner": "Nucor", "name": "Nucor Steel - Auburn", "city": "Auburn", "state": "NY", "lat": 42.9317, "lng": -76.5661}, {"owner": "Nucor", "name": "Nucor Steel - Crawfordsville", "city": "Crawfordsville", "state": "IN", "lat": 39.9742, "lng": -86.8992}, {"owner": "Nucor", "name": "Nucor Steel - Hickman (Arkansas)", "city": "Armorel", "state": "AR", "lat": 35.9015, "lng": -89.8412}, {"owner": "Nucor", "name": "Nucor Steel - Berkeley", "city": "Huger", "state": "SC", "lat": 33.0557, "lng": -79.8265}, {"owner": "Nucor", "name": "Nucor Steel - Decatur", "city": "Trinity", "state": "AL", "lat": 34.5987, "lng": -87.0956}, {"owner": "Nucor", "name": "Nucor Steel - Tuscaloosa", "city": "Tuscaloosa", "state": "AL", "lat": 33.2098, "lng": -87.5692}, {"owner": "Nucor", "name": "Nucor Steel - Memphis", "city": "Memphis", "state": "TN", "lat": 35.1495, "lng": -90.049}, {"owner": "Nucor", "name": "Nucor Steel - Hertford", "city": "Cofield", "state": "NC", "lat": 36.3515, "lng": -76.904}, {"owner": "Nucor", "name": "Nucor Steel - Kankakee", "city": "Bourbonnais", "state": "IL", "lat": 41.162, "lng": -87.8887}, {"owner": "Nucor", "name": "Nucor Steel - Jackson", "city": "Jackson", "state": "MS", "lat": 32.2988, "lng": -90.1848}, {"owner": "Nucor", "name": "Nucor Steel - Marion", "city": "Marion", "state": "OH", "lat": 40.5887, "lng": -83.1285}, {"owner": "Nucor", "name": "Nucor Steel - Seattle", "city": "Seattle", "state": "WA", "lat": 47.548, "lng": -122.336}, {"owner": "Nucor", "name": "Nucor Steel - Gallatin", "city": "Ghent", "state": "KY", "lat": 38.7204, "lng": -84.9791}, {"owner": "Nucor", "name": "Nucor Steel - Lexington (NC)", "city": "Lexington", "state": "NC", "lat": 35.8243, "lng": -80.2534}, {"owner": "Nucor", "name": "Nucor Steel - Brandenburg", "city": "Brandenburg", "state": "KY", "lat": 37.9987, "lng": -86.1671}, {"owner": "Nucor", "name": "Nucor Steel - West Virginia", "city": "Apple Grove", "state": "WV", "lat": 38.5715, "lng": -82.062}, {"owner": "Nucor-Yamato", "name": "Nucor-Yamato Steel", "city": "Blytheville", "state": "AR", "lat": 35.927, "lng": -89.9173}, {"owner": "Steel Dynamics", "name": "SDI - Butler Flat Roll", "city": "Butler", "state": "IN", "lat": 41.4264, "lng": -85.0005}, {"owner": "Steel Dynamics", "name": "SDI - Columbus Flat Roll", "city": "Columbus", "state": "MS", "lat": 33.4957, "lng": -88.4272}, {"owner": "Steel Dynamics", "name": "SDI - Sinton Flat Roll", "city": "Sinton", "state": "TX", "lat": 28.0336, "lng": -97.5085}, {"owner": "Steel Dynamics", "name": "SDI - Columbia City (Structural)", "city": "Columbia City", "state": "IN", "lat": 41.1564, "lng": -85.4886}, {"owner": "Steel Dynamics", "name": "SDI - Pittsboro (Engineered Bar)", "city": "Pittsboro", "state": "IN", "lat": 39.862, "lng": -86.4664}, {"owner": "Steel Dynamics", "name": "SDI - Roanoke Bar", "city": "Roanoke", "state": "VA", "lat": 37.271, "lng": -79.9414}, {"owner": "Steel Dynamics", "name": "SDI - Huntington (New Millennium)", "city": "Huntington", "state": "WV", "lat": 38.4192, "lng": -82.4452}, {"owner": "Steel Dynamics", "name": "SDI - Heartland Flat Roll", "city": "Terre Haute", "state": "IN", "lat": 39.4667, "lng": -87.4139}, {"owner": "CMC Steel", "name": "CMC Steel - Seguin (TX)", "city": "Seguin", "state": "TX", "lat": 29.5688, "lng": -97.9647}, {"owner": "CMC Steel", "name": "CMC Steel - Birmingham (AL)", "city": "Birmingham", "state": "AL", "lat": 33.5186, "lng": -86.8104}, {"owner": "CMC Steel", "name": "CMC Steel - Jacksonville (FL)", "city": "Jacksonville", "state": "FL", "lat": 30.3322, "lng": -81.6557}, {"owner": "CMC Steel", "name": "CMC Steel - Knoxville (TN)", "city": "Knoxville", "state": "TN", "lat": 35.9606, "lng": -83.9207}, {"owner": "CMC Steel", "name": "CMC Steel - Rancho Cucamonga (CA)", "city": "Rancho Cucamonga", "state": "CA", "lat": 34.1064, "lng": -117.5931}, {"owner": "CMC Steel", "name": "CMC Steel - Sayreville (NJ)", "city": "Sayreville", "state": "NJ", "lat": 40.4596, "lng": -74.3599}, {"owner": "CMC Steel", "name": "CMC Steel - Durant (OK) Micro Mill", "city": "Durant", "state": "OK", "lat": 33.994, "lng": -96.3728}, {"owner": "CMC Steel", "name": "CMC Steel - Mesa (AZ) Micro Mill", "city": "Mesa", "state": "AZ", "lat": 33.4152, "lng": -111.8315}, {"owner": "U.S. Steel / Big River", "name": "Big River Steel 1 (US Steel)", "city": "Osceola", "state": "AR", "lat": 35.7047, "lng": -89.9751}, {"owner": "U.S. Steel / Big River", "name": "Big River Steel 2 (US Steel)", "city": "Osceola", "state": "AR", "lat": 35.7, "lng": -89.97}, {"owner": "U.S. Steel", "name": "US Steel - Fairfield Works EAF", "city": "Fairfield", "state": "AL", "lat": 33.4859, "lng": -86.9122}, {"owner": "Cleveland-Cliffs", "name": "Cleveland-Cliffs - Butler Works", "city": "Butler", "state": "PA", "lat": 40.8612, "lng": -79.8953}, {"owner": "Cleveland-Cliffs", "name": "Cleveland-Cliffs - Mansfield Works", "city": "Mansfield", "state": "OH", "lat": 40.7584, "lng": -82.5154}, {"owner": "Cleveland-Cliffs", "name": "Cleveland-Cliffs - Coatesville", "city": "Coatesville", "state": "PA", "lat": 39.9834, "lng": -75.8238}, {"owner": "Cleveland-Cliffs", "name": "Cleveland-Cliffs - Middletown Works EAF", "city": "Middletown", "state": "OH", "lat": 39.5151, "lng": -84.3983}, {"owner": "Cleveland-Cliffs", "name": "Cleveland-Cliffs - Indiana Harbor EAF", "city": "East Chicago", "state": "IN", "lat": 41.6418, "lng": -87.4473}, {"owner": "Gerdau", "name": "Gerdau - Cartersville", "city": "Cartersville", "state": "GA", "lat": 34.1651, "lng": -84.7999}, {"owner": "Gerdau", "name": "Gerdau - Petersburg", "city": "Petersburg", "state": "VA", "lat": 37.2279, "lng": -77.4019}, {"owner": "Gerdau", "name": "Gerdau - Jackson (TN)", "city": "Jackson", "state": "TN", "lat": 35.6145, "lng": -88.8139}, {"owner": "Gerdau", "name": "Gerdau - Midlothian (TX)", "city": "Midlothian", "state": "TX", "lat": 32.4824, "lng": -97.0053}, {"owner": "Gerdau", "name": "Gerdau Special Steel - Monroe", "city": "Monroe", "state": "MI", "lat": 41.9161, "lng": -83.3974}, {"owner": "Gerdau", "name": "Gerdau Special Steel - Fort Smith", "city": "Fort Smith", "state": "AR", "lat": 35.3859, "lng": -94.3985}, {"owner": "BlueScope / North Star", "name": "North Star BlueScope Steel", "city": "Delta", "state": "OH", "lat": 41.5759, "lng": -84.0058}, {"owner": "Charter Steel", "name": "Charter Steel - Cleveland", "city": "Cleveland", "state": "OH", "lat": 41.4993, "lng": -81.6944}, {"owner": "Charter Steel", "name": "Charter Steel - Saukville", "city": "Saukville", "state": "WI", "lat": 43.3836, "lng": -87.9409}, {"owner": "Optimus Steel (fmr. Evraz)", "name": "Optimus Steel - Pueblo", "city": "Pueblo", "state": "CO", "lat": 38.2544, "lng": -104.6091}, {"owner": "Keystone Steel & Wire", "name": "Keystone Steel & Wire", "city": "Bartonville", "state": "IL", "lat": 40.6481, "lng": -89.654}, {"owner": "Cascade Steel", "name": "Cascade Steel Rolling Mills", "city": "McMinnville", "state": "OR", "lat": 45.2101, "lng": -123.1993}, {"owner": "North American Stainless", "name": "North American Stainless", "city": "Ghent", "state": "KY", "lat": 38.7204, "lng": -84.9791}, {"owner": "Carpenter Technology", "name": "Carpenter Technology", "city": "Reading", "state": "PA", "lat": 40.3356, "lng": -75.9269}, {"owner": "Allegheny Technologies", "name": "ATI - Brackenridge", "city": "Brackenridge", "state": "PA", "lat": 40.6098, "lng": -79.7439}, {"owner": "Allegheny Technologies", "name": "ATI - Lockport", "city": "Lockport", "state": "NY", "lat": 43.1706, "lng": -78.6903}, {"owner": "Nucor (fmr. Gallatin)", "name": "North Star / Gallatin Steel", "city": "Ghent", "state": "KY", "lat": 38.7204, "lng": -84.9701}, {"owner": "Hybar", "name": "Hybar LLC EAF Rebar Mill", "city": "Osceola", "state": "AR", "lat": 35.705, "lng": -89.962}, {"owner": "NLMK USA", "name": "NLMK Indiana (now CLF)", "city": "Portage", "state": "IN", "lat": 41.5667, "lng": -87.1764}, {"owner": "Big River Steel (SDI JV)", "name": "SDI - New Millennium Building Systems", "city": "Hope", "state": "AR", "lat": 33.667, "lng": -93.5913}, {"owner": "Nucor", "name": "Nucor Steel - St. Joe (IN)", "city": "Saint Joe", "state": "IN", "lat": 41.3114, "lng": -84.9119}, {"owner": "Metals USA", "name": "Metals USA - Houston EAF", "city": "Houston", "state": "TX", "lat": 29.7604, "lng": -95.3698}, {"owner": "Nucor", "name": "Nucor Steel - Flowood (MS)", "city": "Flowood", "state": "MS", "lat": 32.3357, "lng": -90.1093}];
 const INDEPENDENT_IDS = new Set([2, 8, 12, 37, 45, 84, 105, 106, 126, 151, 166, 167, 170, 229, 238, 243, 259, 260]);
+
+// Sidebar toggle for mobile
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.classList.toggle('collapsed');
+}
 
 // Stats
 const allStates = [...new Set(RAW.map(d=>d.state))].filter(Boolean).sort();
@@ -303,6 +467,11 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   maxZoom: 19
 }).addTo(map);
+
+// Move zoom controls to top right on mobile
+if (window.innerWidth <= 768) {
+  map.zoomControl.setPosition('topright');
+}
 
 function makeIcon(active, independent) {
   let c, size, shadow;
@@ -352,7 +521,13 @@ function buildList(data) {
     li.className = 'list-item';
     li.id = `li-${i}`;
     li.innerHTML = `<div class="li-name">${d.shredder}</div><div class="li-loc">${d.town || '—'}, ${d.state}</div>`;
-    li.addEventListener('click', () => setActive(i, data, true));
+    li.addEventListener('click', () => {
+      setActive(i, data, true);
+      // Close sidebar on mobile after selection
+      if (window.innerWidth <= 768) {
+        setTimeout(() => toggleSidebar(), 300);
+      }
+    });
     listEl.appendChild(li);
   });
 }
@@ -405,8 +580,13 @@ EAF_DATA.forEach(d => {
   `);
 });
 
-// Initial render
+// Initial render with sidebar collapsed on mobile
 buildList(RAW);
+
+// Handle window resize
+window.addEventListener('resize', () => {
+  map.invalidateSize();
+});
 </script>
 </body>
 </html>
